@@ -102,9 +102,9 @@ Follows **GPT-2** with minor simplifications:
                           └────┬────┘
                                │
               ┌────────────────▼────────────────┐
-              │     Multi-Head Self-Attention    │
-              │  (Q, K, V projections + output)  │
-              │  with causal KV-cache            │
+              │     Multi-Head Self-Attention   │
+              │  (Q, K, V projections + output) │
+              │  with causal KV-cache           │
               └────────────────┬────────────────┘
                                │ + residual
                           ┌────▼────┐
@@ -112,8 +112,8 @@ Follows **GPT-2** with minor simplifications:
                           └────┬────┘
                                │
               ┌────────────────▼────────────────┐
-              │          MLP Block               │
-              │  FC1 → ReLU → FC2                │
+              │          MLP Block              │
+              │  FC1 → ReLU → FC2               │
               └────────────────┬────────────────┘
                                │ + residual
                           ┌────▼────┐
