@@ -193,13 +193,13 @@ impl Value {
     fn backward(&self) {
         // Topological sort
         let mut topo: Vec<Value> = Vec::new();
-        let mut visited: Vec<Value> = Vec::new();
+        let mut visited = std::collections::HashSet::new();
 
-        fn build_topo(v: &Value, topo: &mut Vec<Value>, visited: &mut Vec<Value>) {
-            if visited.iter().any(|x| x.ptr_eq(v)) {
+        fn build_topo(v: &Value, topo: &mut Vec<Value>, visited: &mut std::collections::HashSet<*const std::cell::RefCell<ValueInner>>) {
+            let ptr = Rc::as_ptr(&v.0);
+            if !visited.insert(ptr) {
                 return;
             }
-            visited.push(v.clone());
             let inner = v.0.borrow();
             for child in &inner.children {
                 build_topo(child, topo, visited);
