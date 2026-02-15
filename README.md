@@ -18,7 +18,7 @@ The project is a faithful port of the original Python implementation across **ei
 | ⚙️ C++ | `microgpt.cpp` | STL only | `g++ -std=c++17 -O2 -o microgpt microgpt.cpp && ./microgpt` |
 | 🦀 Rust | `microgpt.rs` | `std` only | `rustc -O microgpt.rs -o microgpt && ./microgpt` |
 | 🍎 Swift | `microgpt.swift` | `Foundation` only | `swiftc -O microgpt.swift -o microgpt && ./microgpt` |
-| 🎯 Dart | `microgpt.dart` | `dart:io` + `dart:math` | `dart run microgpt.dart` |
+| 🎯 Dart | `microgpt.dart` | `dart:io` + `dart:math` | `dart compile exe microgpt.dart -o microgpt && ./microgpt` |
 | 🟣 Kotlin | `microgpt.kt` | `kotlin.math` + `java.io` | `kotlinc microgpt.kt -include-runtime -d microgpt.jar && java -jar microgpt.jar` |
 | 🟡 JavaScript | `microgpt.js` | `fs` (Node.js built-in) | `node microgpt.js` |
 | 🔵 Go | `microgpt.go` | stdlib only | `go run microgpt.go` |
@@ -239,6 +239,7 @@ microgpt/
 ├── microgpt.kt         # Kotlin port
 ├── microgpt.js         # JavaScript (Node.js) port
 ├── microgpt.go         # Go port
+├── benchmark.sh        # All-languages benchmark script
 └── README.md           # This file
 ```
 
@@ -271,7 +272,7 @@ rustc -O microgpt.rs -o microgpt_rs && ./microgpt_rs
 swiftc -O microgpt.swift -o microgpt_swift && ./microgpt_swift
 
 # Dart
-dart run microgpt.dart
+dart compile exe microgpt.dart -o microgpt && ./microgpt
 
 # Kotlin
 kotlinc microgpt.kt -include-runtime -d microgpt.jar && java -jar microgpt.jar
@@ -302,6 +303,31 @@ sample  3: Aden
 ```
 
 > **Note**: Exact output values may vary slightly between languages due to differences in floating-point arithmetic and RNG implementations, but the overall behavior and convergence should be consistent.
+
+---
+
+## ⏱️ Benchmarking
+
+A benchmark script is included that compiles and runs all implementations with maximum optimizations, then prints a ranked comparison table.
+
+```bash
+bash benchmark.sh
+```
+
+This compiles each language with its best optimization flags (`-O3` for C++, `-O` for Rust/Swift, AOT for Dart, etc.), runs all 1000 training steps, and produces a results table like:
+
+```
+╔═══════════════════════════════════════════════════════════════════════╗
+║                        BENCHMARK RESULTS                              ║
+╠═══════════════════════════════════════════════════════════════════════╣
+║  Rank │ Language              │ Compile (s) │  Run (s)  │ vs Fastest  ║
+║  ─────┼───────────────────────┼─────────────┼───────────┼─────────────║
+║    #1 │ Rust (rustc -O)       │          3s │      6s   │      1.00x  ║
+║    #2 │ C++ (g++ -O3)         │          1s │      7s   │      1.17x  ║
+╚═══════════════════════════════════════════════════════════════════════╝
+```
+
+> **Note**: The above is a sample — actual timings depend on your hardware. Missing toolchains are gracefully skipped.
 
 ---
 
