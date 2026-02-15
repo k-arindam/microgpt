@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <cmath>
 #include <random>
+#include <map>
 #include <memory>
 #include <functional>
 #include <numeric>

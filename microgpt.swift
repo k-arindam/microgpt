@@ -161,7 +161,7 @@ func linear(_ x: Vec1, _ w: Mat) -> Vec1 {
 
 func softmax(_ logits: Vec1) -> Vec1 {
     let maxVal = logits.map { $0.data }.max()!
-    let exps = logits.map { ($0 - maxVal).vexp() }
+    let exps = logits.map { ($0 - Value(maxVal)).vexp() }
     let total = sumVals(exps)
     return exps.map { $0 / total }
 }
