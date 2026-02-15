@@ -10,7 +10,7 @@ A multi-language port of Andrej Karpathy's beautifully minimal GPT trainer. One 
 
 MicroGPT implements a **complete GPT-2 style language model** from scratch — including autograd, training, and inference — in a single file per language. It trains on a character-level dataset (names by default) and learns to generate novel, hallucinated names.
 
-The project is a faithful port of the original Python implementation across **five languages**:
+The project is a faithful port of the original Python implementation across **eight languages**:
 
 | Language | File | Dependencies | Compile / Run |
 |:---------|:-----|:-------------|:--------------|
@@ -19,6 +19,9 @@ The project is a faithful port of the original Python implementation across **fi
 | 🦀 Rust | `microgpt.rs` | `std` only | `rustc -O microgpt.rs -o microgpt && ./microgpt` |
 | 🍎 Swift | `microgpt.swift` | `Foundation` only | `swiftc -O microgpt.swift -o microgpt && ./microgpt` |
 | 🎯 Dart | `microgpt.dart` | `dart:io` + `dart:math` | `dart run microgpt.dart` |
+| 🟣 Kotlin | `microgpt.kt` | `kotlin.math` + `java.io` | `kotlinc microgpt.kt -include-runtime -d microgpt.jar && java -jar microgpt.jar` |
+| 🟡 JavaScript | `microgpt.js` | `fs` (Node.js built-in) | `node microgpt.js` |
+| 🔵 Go | `microgpt.go` | stdlib only | `go run microgpt.go` |
 
 > **Key principle**: Every port preserves the exact same structure, variable naming conventions, and algorithmic flow as the original Python. Reading any version is reading the same algorithm.
 
@@ -44,17 +47,17 @@ input.txt → list of documents → character-level tokenizer
 A scalar-valued autograd system that tracks computation graphs and computes gradients via reverse-mode differentiation (backpropagation).
 
 **Supported operations:**
-| Operation | Python | C++ | Rust | Swift | Dart |
-|:----------|:-------|:----|:-----|:------|:-----|
-| Addition | `a + b` | `a + b` | `a.add(&b)` | `a + b` | `a + b` |
-| Multiplication | `a * b` | `a * b` | `a.mul(&b)` | `a * b` | `a * b` |
-| Power | `a ** n` | `vpow(a, n)` | `a.vpow(n)` | `a.vpow(n)` | `a.vpow(n)` |
-| Log | `a.log()` | `vlog(a)` | `a.vlog()` | `a.vlog()` | `a.vlog()` |
-| Exp | `a.exp()` | `vexp(a)` | `a.vexp()` | `a.vexp()` | `a.vexp()` |
-| ReLU | `a.relu()` | `vrelu(a)` | `a.relu()` | `a.relu()` | `a.relu()` |
-| Negation | `-a` | `-a` | `a.neg()` | `-a` | `-a` |
-| Subtraction | `a - b` | `a - b` | `a.sub(&b)` | `a - b` | `a - b` |
-| Division | `a / b` | `a / b` | `a.div(&b)` | `a / b` | `a / b` |
+| Operation | Python | C++ | Rust | Swift | Dart | Kotlin | JavaScript | Go |
+|:----------|:-------|:----|:-----|:------|:-----|:-------|:-----------|:---|
+| Addition | `a + b` | `a + b` | `a.add(&b)` | `a + b` | `a + b` | `a + b` | `a.add(b)` | `Add(a,b)` |
+| Multiplication | `a * b` | `a * b` | `a.mul(&b)` | `a * b` | `a * b` | `a * b` | `a.mul(b)` | `Mul(a,b)` |
+| Power | `a ** n` | `vpow(a, n)` | `a.vpow(n)` | `a.vpow(n)` | `a.vpow(n)` | `a.vpow(n)` | `a.pow(n)` | `Pow(a,n)` |
+| Log | `a.log()` | `vlog(a)` | `a.vlog()` | `a.vlog()` | `a.vlog()` | `a.vlog()` | `a.log()` | `Log(a)` |
+| Exp | `a.exp()` | `vexp(a)` | `a.vexp()` | `a.vexp()` | `a.vexp()` | `a.vexp()` | `a.exp()` | `Exp(a)` |
+| ReLU | `a.relu()` | `vrelu(a)` | `a.relu()` | `a.relu()` | `a.relu()` | `a.relu()` | `a.relu()` | `Relu(a)` |
+| Negation | `-a` | `-a` | `a.neg()` | `-a` | `-a` | `-a` | `a.neg()` | `Neg(a)` |
+| Subtraction | `a - b` | `a - b` | `a.sub(&b)` | `a - b` | `a - b` | `a - b` | `a.sub(b)` | `Sub(a,b)` |
+| Division | `a / b` | `a / b` | `a.div(&b)` | `a / b` | `a / b` | `a / b` | `a.div(b)` | `Div(a,b)` |
 
 **Backward pass** uses topological sorting (DFS) to propagate gradients through the computation graph — the chain rule, applied recursively.
 
@@ -198,6 +201,29 @@ For each sample:
 - **RNG**: Hand-rolled **xoshiro256\*\*** + Box-Muller for Gaussian
 - **String handling**: Character-by-character via index access (`string[i]`)
 
+### Kotlin (`microgpt.kt`)
+
+- **Value class**: Kotlin classes are reference types; direct operator overloads (`plus`, `times`, `minus`, `div`, `unaryMinus`)
+- **Data class for weights**: `data class LayerWeights` for clean per-layer storage
+- **RNG**: Hand-rolled **xoshiro256\*\*** with `Long` (64-bit signed) + Box-Muller
+- **Signed 64-bit workaround**: SplitMix64 seed constants expressed as signed `Long` literals
+
+### JavaScript (`microgpt.js`)
+
+- **Value class**: ES6 class with method-based API (`.add()`, `.mul()`, `.sub()`, `.div()`)
+- **No operator overloads**: JS doesn't support them, so all operations are method calls
+- **RNG**: Hand-rolled **xoshiro256\*\*** using `BigInt` for 64-bit precision + Box-Muller
+- **Typed arrays**: `Float64Array` for Adam optimizer buffers (memory-efficient)
+- **IIFE pattern**: Entire program wrapped in an immediately-invoked function
+
+### Go (`microgpt.go`)
+
+- **Value struct**: Pointer-based (`*Value`) for shared graph references
+- **Free functions**: Go has no operator overloading — all ops are top-level functions (`Add`, `Mul`, `Pow`, `Log`, `Exp`, `Relu`, etc.)
+- **RNG**: Hand-rolled **xoshiro256\*\*** with `uint64` + Box-Muller for Gaussian
+- **Shuffle**: Uses `Rng.Shuffle` with a swap callback (matches `sort.Slice` idiom)
+- **Idiomatic Go**: Exported fields (`Data`, `Grad`), unexported internals (`children`, `localGrads`)
+
 ---
 
 ## 📂 Project Structure
@@ -210,6 +236,9 @@ microgpt/
 ├── microgpt.rs         # Rust port
 ├── microgpt.swift      # Swift port
 ├── microgpt.dart       # Dart port
+├── microgpt.kt         # Kotlin port
+├── microgpt.js         # JavaScript (Node.js) port
+├── microgpt.go         # Go port
 └── README.md           # This file
 ```
 
@@ -243,6 +272,15 @@ swiftc -O microgpt.swift -o microgpt_swift && ./microgpt_swift
 
 # Dart
 dart run microgpt.dart
+
+# Kotlin
+kotlinc microgpt.kt -include-runtime -d microgpt.jar && java -jar microgpt.jar
+
+# JavaScript (Node.js)
+node microgpt.js
+
+# Go
+go run microgpt.go
 ```
 
 ### Expected Output
@@ -276,6 +314,9 @@ sample  3: Aden
 | Rust | 0 | `std::cell`, `std::collections`, `std::fs`, `std::rc` |
 | Swift | 0 | `Foundation` |
 | Dart | 0 | `dart:io`, `dart:math` |
+| Kotlin | 0 | `java.io.File`, `kotlin.math.*` |
+| JavaScript | 0 | `fs` (Node.js built-in) |
+| Go | 0 | `fmt`, `math`, `os`, `bufio`, `sort`, `strings` |
 
 Every implementation achieves **zero external dependencies** — only standard library / language built-ins are used.
 
@@ -287,7 +328,7 @@ This project demonstrates that:
 
 1. **A GPT can be implemented in ~200-300 lines** in any modern language
 2. **Autograd doesn't require a framework** — it's just the chain rule + a topological sort
-3. **The algorithm is language-agnostic** — the same structure maps naturally to C++, Rust, Swift, and Dart
+3. **The algorithm is language-agnostic** — the same structure maps naturally to C++, Rust, Swift, Dart, Kotlin, JavaScript, and Go
 4. **Dependencies are optional** — even RNG and Gaussian sampling can be done from scratch
 
 It's a powerful educational tool for understanding transformers at the most fundamental level.
